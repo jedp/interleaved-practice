@@ -25,9 +25,88 @@ class InterleavedPractice:
     phrases: list[Phrase]
 
 
+FAURÉ_TRIO_OP120 = InterleavedPractice(
+    title="Fauré piano trio in d minor",
+    phrases=[
+        Phrase(1, 1, 23),
+        Phrase(1, 21, 35),
+        Phrase(2, 31, 41),
+        Phrase(2, 41, 51),
+        Phrase(2, 51, 67),
+        Phrase(3, 67, 82),
+        Phrase(4, 82, 106),
+        Phrase(5, 107, 126),
+        Phrase(5, 127, 135),
+        Phrase(6, 135, 151),
+        Phrase(6, 151, 165),
+        Phrase(7, 165, 179),
+        Phrase(7, 179, 191),
+        Phrase(8, 191, 202),
+        Phrase(8, 203, 211),
+        Phrase(9, 211, 230),
+        Phrase(9, 231, 250),
+        Phrase(10, 251, 274),
+        Phrase(11, 271, 291),
+        Phrase(11, 289, 307),
+        Phrase(12, 306, 319),
+        Phrase(13, 319, 323),
+        Phrase(13, 322, 331),
+        Phrase(13, 331, 342),
+    ]
+)
+
+# Henle edition
+MOZART_K453_PIANO = InterleavedPractice(
+    title="Mozart K453, Concerto #17 in G (piano)",
+    phrases=[
+        Phrase(5, 74, 90),
+        Phrase(6, 91, 94),
+        Phrase(6, 97, 100),
+        Phrase(7, 100, 109),
+        Phrase(8, 110, 121),
+        Phrase(8, 122, 125),
+        Phrase(8, 126, 135),
+        Phrase(9, 139, 146),
+        Phrase(10, 147, 152),
+        Phrase(10, 153, 160),
+        Phrase(11, 160, 164),
+        Phrase(11, 164, 171),
+        Phrase(12, 184, 192),
+        Phrase(13, 192, 203),
+        Phrase(13, 203, 207),
+        Phrase(14, 211, 225),
+        Phrase(15, 237, 242),
+        Phrase(17, 257, 264),
+        Phrase(17, 265, 272),
+        Phrase(17, 273, 276),
+        Phrase(18, 277, 286),
+        Phrase(19, 286, 290),
+        Phrase(19, 290, 297),
+        Phrase(20, 298, 304),
+        Phrase(20, 304, 311),
+        Phrase(20, 311, 317),
+        Phrase(21, 317, 319),
+        Phrase(22, 328, 328),  # Cadenza
+        Phrase(26, 30, 34),
+        Phrase(26, 35, 42),
+        Phrase(27, 45, 54),
+        Phrase(28, 56, 64),
+        Phrase(28, 69, 74),
+        Phrase(29, 74, 80),
+        Phrase(29, 81, 86),
+        Phrase(30, 90, 94),
+        Phrase(30, 95, 102),
+        Phrase(31, 105, 111),
+        Phrase(31, 115, 122),
+        Phrase(32, 122, 123),  # Cadenza
+        Phrase(33, 127, 130),
+        Phrase(33, 131, 136),
+    ]
+)
+
 # Henle edition 932 (Jost, Groethuysen)
 MOZART_K497_SECONDO = InterleavedPractice(
-    title="Mozart K497",
+    title="Mozart K497, Sonata in D for piano four-hands (secondo)",
     phrases=[
         Phrase(32, 1, 16),
         Phrase(32, 17, 35),
@@ -99,4 +178,25 @@ def practice(passages: InterleavedPractice) -> None:
 
 
 if __name__ == '__main__':
-    practice(MOZART_K497_SECONDO)
+    # Options and order in which to list them.
+    choices = (
+        MOZART_K453_PIANO,
+        FAURÉ_TRIO_OP120,
+        # MOZART_K497_SECONDO
+    )
+    selected = 0
+
+    while selected < 1 or selected > len(choices):
+        i = 1
+        for choice in choices:
+            print(f"{i:2}: {choice.title}")
+            i += 1
+
+        print("\n")
+
+        try:
+            selected = int(input("Which one? "))
+        except ValueError:
+            pass
+
+    practice(choices[selected - 1])
