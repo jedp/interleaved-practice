@@ -6,6 +6,7 @@ Script to facilitate Molly Gebrian's technique of interleaved practice.
 
 import random
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Any, Generator
 
 
@@ -16,7 +17,11 @@ class Phrase:
     to_measure: int
 
     def __str__(self) -> str:
-        return f"Page {self.page:3}, measures {self.from_measure:3} \u2013 {self.to_measure:3}"
+        return f"Page {self.page:3}, measures {self.from_measure:3} – {self.to_measure:3}"
+
+    @property
+    def measure_count(self) -> int:
+        return self.to_measure - self.from_measure + 1
 
 
 @dataclass
@@ -24,6 +29,44 @@ class InterleavedPractice:
     title: str
     phrases: list[Phrase]
 
+    @property
+    def total_measures(self) -> int:
+        return sum(phrase.measure_count for phrase in self.phrases)
+
+
+@dataclass
+class SessionStats:
+    start_time: datetime
+    phrases_practiced: int = 0
+
+    def add_phrase(self) -> None:
+        self.phrases_practiced += 1
+
+    def __str__(self) -> str:
+        session_duration = datetime.now() - self.start_time
+        return (f"Session stats: {self.phrases_practiced} phrases practiced, "
+                f"session time {session_duration}")
+
+
+BACH_GAMBA_SONATA_G = InterleavedPractice(
+    title="Gamba sonata in G major",
+    phrases=[
+        Phrase(1, 1, 6),
+        Phrase(1, 6, 13),
+        Phrase(2, 13, 21),
+        Phrase(3, 21, 28),
+        Phrase(4, 1, 9),
+        Phrase(4, 9, 20),
+        Phrase(5, 21, 33),
+        Phrase(5, 33, 43),
+        Phrase(6, 43, 48),
+        Phrase(6, 50, 61),
+        Phrase(7, 61, 78),
+        Phrase(8, 78, 93),
+        Phrase(9, 94, 108),
+        Phrase(9, 108, 113),
+    ]
+)
 
 FAURÉ_TRIO_OP120 = InterleavedPractice(
     title="Fauré piano trio in d minor",
@@ -150,53 +193,104 @@ MOZART_K497_SECONDO = InterleavedPractice(
 )
 
 
-def next_from_list(l: list[Phrase]) -> Generator[Phrase, Any, Any]:
+def next_from_list(phrases: list[Phrase]) -> Generator[Phrase, Any, Any]:
+    """Generate phrases, hitting each one once before reshuffling."""
     i = 0
     while True:
         if i == 0:
-            print(f"Shuffling {len(l)} phrases")
-            random.shuffle(l)
+            print(f"🔄 Shuffling {len(phrases)} phrases")
+            random.shuffle(phrases)
 
-        yield l[i]
+        yield phrases[i]
 
-        i = (i + 1) % len(l)
+        i = (i + 1) % len(phrases)
 
 
 def practice(passages: InterleavedPractice) -> None:
-    print(f"Interleaved practice for {passages.title}. {len(passages.phrases)} phrases.")
+    """Main practice session."""
+    print(f"🎼 Interleaved practice for {passages.title}")
+    print(f"📊 {len(passages.phrases)} phrases, {passages.total_measures} measures")
+    print()
 
-    i = 0
+    stats = SessionStats(datetime.now())
+
+    print("🎵 Starting practice session...")
+    print("📝 Commands: [Enter] = next phrase, [s] = stats, [q] = quit")
+    print("=" * 60)
 
     try:
-        for next_passage in next_from_list(passages.phrases):
-            i += 1
-            print(f"{i:2}: {next_passage}. (enter to continue)")
-            input()
+        for i, next_passage in enumerate(next_from_list(passages.phrases), 1):
+            print(f"\n[{i}] {next_passage}")
+            print(f"📏 {next_passage.measure_count} measures")
+
+            response = input("👉 ").strip().lower()
+
+            # Record that we practiced a phrase
+            stats.add_phrase()
+
+            if response == 'q':
+                break
+            elif response == 's':
+                print(f"\n📈 {stats}")
+                input("Press Enter to continue...")
+            # Default: continue to next phrase
 
     except KeyboardInterrupt:
-        print("\nHope it went ok!")
+        print("\n\n⏹️  Practice session interrupted")
+
+    # Final statistics
+    session_duration = datetime.now() - stats.start_time
+    print("\n" + "=" * 60)
+    print("📊 Session Summary")
+    print("=" * 60)
+    print(f"⏱️  Total session time: {session_duration}")
+    print(f"🎵 Phrases practiced: {stats.phrases_practiced}")
+    print("\n🎉 Hope it was good!")
+
+
+def select_piece() -> InterleavedPractice:
+    """Enhanced piece selection with better UI."""
+    choices = [
+        MOZART_K453_PIANO,
+        FAURÉ_TRIO_OP120,
+        BACH_GAMBA_SONATA_G,
+        MOZART_K497_SECONDO,
+    ]
+
+    print("🎼 Interleaved Practice Assistant")
+    print("=" * 40)
+
+    while True:
+        print("\n📚 Available pieces:")
+        for i, choice in enumerate(choices, 1):
+            print(f"{i:2}: {choice.title}")
+            print(f"    {len(choice.phrases)} phrases, {choice.total_measures} measures")
+
+        print("\n0: Quit")
+
+        try:
+            selection = input("\n🎯 Select a piece (1-{}): ".format(len(choices))).strip()
+
+            if selection == '0':
+                print("👋 Goodbye!")
+                exit(0)
+
+            selected = int(selection)
+            if 1 <= selected <= len(choices):
+                return choices[selected - 1]
+            else:
+                print(f"❌ Please enter a number between 1 and {len(choices)}")
+
+        except ValueError:
+            print("❌ Please enter a valid number")
+        except KeyboardInterrupt:
+            print("\n👋 Goodbye!")
+            exit(0)
 
 
 if __name__ == '__main__':
-    # Options and order in which to list them.
-    choices = (
-        MOZART_K453_PIANO,
-        FAURÉ_TRIO_OP120,
-        # MOZART_K497_SECONDO
-    )
-    selected = 0
-
-    while selected < 1 or selected > len(choices):
-        i = 1
-        for choice in choices:
-            print(f"{i:2}: {choice.title}")
-            i += 1
-
-        print("\n")
-
-        try:
-            selected = int(input("Which one? "))
-        except ValueError:
-            pass
-
-    practice(choices[selected - 1])
+    try:
+        selected_piece = select_piece()
+        practice(selected_piece)
+    except KeyboardInterrupt:
+        print("\n👋 Goodbye!")
